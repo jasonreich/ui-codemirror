@@ -120,6 +120,9 @@ function uiCodemirrorDirective($timeout, $rootScope, uiCodemirrorConfig) {
       //Although the formatter have already done this, it can be possible that another formatter returns undefined (for example the required directive)
       var safeViewValue = ngModel.$viewValue || '';
       codemirror.setValue(safeViewValue);
+      $timeout(function() {
+        codemirror.refresh();
+      });
     };
 
 
@@ -140,17 +143,21 @@ function uiCodemirrorDirective($timeout, $rootScope, uiCodemirrorConfig) {
       }
 
       if ($rootScope.$$phase) {
-    	  scope.$evalAsync(ngModel.$setTouched);
+        scope.$evalAsync(function() {
+          ngModel.$setTouched();
+        });
       } else {
-    	  scope.$apply(ngModel.$setTouched);
+        scope.$apply(function() {
+          ngModel.$setTouched();
+        });
       }
     });
 
     // Debounce as with NgModelController
-    if (ngModel.$options && ngModel.$options.updateOn) {
-      ngModel.$options.updateOn.split(/\s+/).forEach(function(trigger) {
+    if (ngModel.$options.getOption('updateOn')) {
+      ngModel.$options.getOption('updateOn').split(/\s+/).forEach(function(trigger) {
         codemirror.on(trigger, function() {
-      	  ngModel.$$debounceViewValueCommit(trigger);
+          ngModel.$$debounceViewValueCommit(trigger);
         });
       });
     }
